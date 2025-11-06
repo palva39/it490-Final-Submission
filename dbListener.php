@@ -5,10 +5,10 @@ require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 
-const DB_HOST = '100.76.74.77';
-const DB_NAME = 'loginDB';
-const DB_USER = 'loginapp';
-const DB_PASS = 'loginappPass123';
+const DB_HOST = '127.0.0.1';
+const DB_NAME = 'gamehub';
+const DB_USER = 'dbListener';
+const DB_PASS = 'listening123';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
