@@ -48,12 +48,14 @@ function requestProcessor(array $req) {
         $name = trim((string)($req['name'] ?? ''));
         $version = (int)($req['version'] ?? 0);
         $status = (string)($req['status'] ?? 'new');
-        if ($name === '' || $version <= 0) return fail('missing name or version');
+        $filepath = trim((string)($req['filepath'] ?? '')); 
 
-        $sql = "INSERT INTO bundles (name, version, status) VALUES (?,?,?)";
+        if ($name === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
+
+        $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?)";
         try {
           $stmt = pdo()->prepare($sql);
-          $stmt->execute([$name, $version, $status]);
+          $stmt->execute([$name, $version, $status, $filepath]);
         } catch (PDOException $e) {
           if (strpos($e->getMessage(), 'Duplicate') !== false) {
             return fail('duplicate name+version');
@@ -85,4 +87,9 @@ function requestProcessor(array $req) {
     return fail('exception', ['detail' => $e->getMessage()]);
   }
 }
+
+
+logit('starting…');
+$server = new rabbitMQServer('testRabbitMQ.ini', 'deployServer');
+$server->process_requests('requestProcessor');
 ?>
