@@ -26,5 +26,9 @@ function pdo(): PDO {
   return $pdo;
 }
 
+function ok($data = []) { return ['ok' => true] + $data; }
+function fail($msg, $extra = []) { return ['ok' => false, 'error' => $msg] + $extra; }
+function logit(string $msg): void { error_log('[deploy-listener] '.$msg); }
+
 
 ?>
