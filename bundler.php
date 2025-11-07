@@ -62,4 +62,10 @@ $register = $client->send_request([
     'filepath' => $gzFile
 ]);
 
+
+if ($register['ok'] ?? false) {
+    echo "✅ Registered $bundleName v$nextVersion in deployment database.\n";
+} else {
+    echo "❌ Failed to register bundle.\n";
+}
 ?>
