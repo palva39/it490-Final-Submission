@@ -22,4 +22,11 @@ $files  = $config['bundle']['file.1'];
 $description = $config['bundle']['description'] ?? 'No description';
 
 
+if (!file_exists($files)) {
+    //need to add a checker for all files we are bundling for now one file for testing
+    echo "Error: File $files does not exist.\n";
+    exit(1);
+}
+
+
 ?>
