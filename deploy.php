@@ -44,6 +44,24 @@ function requestProcessor(array $req) {
         $v = (int)($stmt->fetch()['v'] ?? 1);
         return ok(['version' => $v]);
       }
+       case 'register_bundle': {
+        $name = trim((string)($req['name'] ?? ''));
+        $version = (int)($req['version'] ?? 0);
+        $status = (string)($req['status'] ?? 'new');
+        if ($name === '' || $version <= 0) return fail('missing name or version');
+
+        $sql = "INSERT INTO bundles (name, version, status) VALUES (?,?,?)";
+        try {
+          $stmt = pdo()->prepare($sql);
+          $stmt->execute([$name, $version, $status]);
+        } catch (PDOException $e) {
+          if (strpos($e->getMessage(), 'Duplicate') !== false) {
+            return fail('duplicate name+version');
+          }
+          throw $e;
+        }
+        return ok(['id' => (int)pdo()->lastInsertId()]);
+      }
 
     }
   }
