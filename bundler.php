@@ -41,7 +41,7 @@ echo "Next version for $bundleName is $nextVersion\n";
 $tarFile = "{$tarFiles_stored }/{$bundleName}_v{$nextVersion}.tar";
 $gzFile  = "{$tarFiles_stored }/{$bundleName}_v{$nextVersion}.tar.gz";
 
-$fileData = base64_encode(file_get_contents($gzFile));
+
 
 try {
     $phar = new PharData($tarFile);
@@ -54,6 +54,8 @@ try {
     echo "Error creating tar.gz: {$e->getMessage()}\n";
     exit(1);
 }
+
+$fileData = base64_encode(file_get_contents($gzFile));
 
 $register = $client->send_request([
     'type'     => 'register_bundle',
