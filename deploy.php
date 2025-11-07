@@ -9,7 +9,7 @@ require_once('rabbitMQLib.inc');
 
 /*--------------DB info------------*/
 const DB_HOST = '127.0.0.1';
-const DB_NAME = 'bundler';
+const DB_NAME = 'bundles';
 const DB_USER = 'deploy';
 const DB_PASS = 'deploy123'; 
 
