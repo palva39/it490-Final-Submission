@@ -29,4 +29,15 @@ if (!file_exists($files)) {
 }
 
 
+//checks with deployment system for the next version so we dont have to add a version number in our bunlder
+$client = new rabbitMQClient($rabbitINI, $queueName);
+$response = $client->send_request([
+    'type' => 'next_version',
+    'name' => $bundleName
+]);
+
+$nextVersion = $response['version'] ?? 1;
+echo "Next version for $bundleName is $nextVersion\n";
+
+
 ?>
