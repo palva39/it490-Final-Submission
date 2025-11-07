@@ -52,7 +52,7 @@ function requestProcessor(array $req) {
 
         if ($name === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
 
-        $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?)";
+        $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?,?)";
         try {
           $stmt = pdo()->prepare($sql);
           $stmt->execute([$name, $version, $status, $filepath]);
