@@ -30,5 +30,22 @@ function ok($data = []) { return ['ok' => true] + $data; }
 function fail($msg, $extra = []) { return ['ok' => false, 'error' => $msg] + $extra; }
 function logit(string $msg): void { error_log('[deploy-listener] '.$msg); }
 
+function requestProcessor(array $req) {
+  try {
+    $type = $req['type'] ?? '';
+    if ($type === '') return fail('missing type');
 
+    switch ($type) {
+      case 'next_version': {
+        $name = trim((string)($req['name'] ?? ''));
+        if ($name === '') return fail('missing name');
+        $stmt = pdo()->prepare("SELECT COALESCE(MAX(version),0)+1 AS v FROM bundles WHERE name = ?");
+        $stmt->execute([$name]);
+        $v = (int)($stmt->fetch()['v'] ?? 1);
+        return ok(['version' => $v]);
+      }
+
+    }
+  }
+}
 ?>
