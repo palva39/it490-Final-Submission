@@ -31,7 +31,7 @@ function fail($msg, $extra = []) { return ['ok' => false, 'error' => $msg] + $ex
 function logit(string $msg): void { error_log('[deploy-listener] '.$msg); }
 
 function requestProcessor(array $req) {
-  try {
+  try{
     $type = $req['type'] ?? '';
     if ($type === '') return fail('missing type');
 
@@ -75,7 +75,14 @@ function requestProcessor(array $req) {
         return ok();
       }
 
+      default:
+        return fail('unknown type: '.$type);
     }
+    
+  }
+  catch (Throwable $e) {
+    logit('ERR '.$e->getMessage());
+    return fail('exception', ['detail' => $e->getMessage()]);
   }
 }
 ?>
