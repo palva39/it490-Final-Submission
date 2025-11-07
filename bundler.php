@@ -10,7 +10,7 @@ $tarFiles_stored = '/home/vboxuser/git/it490-Final-Submission/tarFiles';
 
 $config = parse_ini_file('getInfo.ini', true);
 if (!$config) {
-    echo "Error: Could not read bundler.ini\n";
+    echo "Error: Could not read getInfo.ini\n";
     exit(1);
 }
 
@@ -42,6 +42,7 @@ $tarFile = "{$tarFiles_stored }/{$bundleName}_v{$nextVersion}.tar";
 $gzFile  = "{$tarFiles_stored }/{$bundleName}_v{$nextVersion}.tar.gz";
 
 
+
 try {
     $phar = new PharData($tarFile);
     $phar->addFile($file, basename($file));
@@ -54,12 +55,15 @@ try {
     exit(1);
 }
 
+$fileData = base64_encode(file_get_contents($gzFile));
+
 $register = $client->send_request([
     'type'     => 'register_bundle',
     'name'     => $bundleName,
     'version'  => $nextVersion,
     'status'   => 'new',
-    'filepath' => $gzFile
+    'filepath' => $gzFile,
+    'filedata' => $fileData
 ]);
 
 
