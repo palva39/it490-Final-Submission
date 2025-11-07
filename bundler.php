@@ -8,7 +8,7 @@ require_once('rabbitMQLib.inc');
 
 $tarFiles_stored = '/home/vboxuser/git/it490-Final-Submission/tarFiles';
 
-$config = parse_ini_file('bundler.ini', true);
+$config = parse_ini_file('getInfo.ini', true);
 if (!$config) {
     echo "Error: Could not read bundler.ini\n";
     exit(1);
