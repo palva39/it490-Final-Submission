@@ -62,6 +62,18 @@ function requestProcessor(array $req) {
         }
         return ok(['id' => (int)pdo()->lastInsertId()]);
       }
+      case 'set_status': {
+        $name = trim((string)($req['name'] ?? ''));
+        $version = (int)($req['version'] ?? 0);
+        $status = (string)($req['status'] ?? '');
+        if ($name === '' || $version <= 0 || !in_array($status, ['new','passed','failed'], true)) {
+          return fail('invalid args');
+        }
+        $stmt = pdo()->prepare("UPDATE bundles SET status = ? WHERE name = ? AND version = ?");
+        $stmt->execute([$status, $name, $version]);
+        if ($stmt->rowCount() === 0) return fail('not found');
+        return ok();
+      }
 
     }
   }
