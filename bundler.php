@@ -53,4 +53,13 @@ try {
     echo "Error creating tar.gz: {$e->getMessage()}\n";
     exit(1);
 }
+
+$register = $client->send_request([
+    'type'     => 'register_bundle',
+    'name'     => $bundleName,
+    'version'  => $nextVersion,
+    'status'   => 'new',
+    'filepath' => $gzFile
+]);
+
 ?>
