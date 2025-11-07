@@ -48,14 +48,17 @@ function requestProcessor(array $req) {
         $name = trim((string)($req['name'] ?? ''));
         $version = (int)($req['version'] ?? 0);
         $status = (string)($req['status'] ?? 'new');
-        $filepath = trim((string)($req['filepath'] ?? '')); 
+        $filepath = trim((string)($req['filepath'] ?? ''));
+        $filedata = $req['filedata'] ?? null;
+        
+         $binary = base64_decode((string)$filedata, true);
 
         if ($name === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
 
-        $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?,?)";
+        $sql = "INSERT INTO bundles (name, version, status, filepath, filedata) VALUES (?,?,?,?,?)";
         try {
           $stmt = pdo()->prepare($sql);
-          $stmt->execute([$name, $version, $status, $filepath]);
+          $stmt->execute([$name, $version, $status, $filepath, $filedata]);
         } catch (PDOException $e) {
           if (strpos($e->getMessage(), 'Duplicate') !== false) {
             return fail('duplicate name+version');
