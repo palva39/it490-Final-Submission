@@ -41,6 +41,7 @@ echo "Next version for $bundleName is $nextVersion\n";
 $tarFile = "{$tarFiles_stored }/{$bundleName}_v{$nextVersion}.tar";
 $gzFile  = "{$tarFiles_stored }/{$bundleName}_v{$nextVersion}.tar.gz";
 
+$fileData = base64_encode(file_get_contents($gzFile));
 
 try {
     $phar = new PharData($tarFile);
@@ -59,7 +60,8 @@ $register = $client->send_request([
     'name'     => $bundleName,
     'version'  => $nextVersion,
     'status'   => 'new',
-    'filepath' => $gzFile
+    'filepath' => $gzFile,
+    'filedata' => $fileData
 ]);
 
 
