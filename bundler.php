@@ -17,14 +17,13 @@ if (!$config) {
 $rabbitINI = $config['deploy']['rabbit_ini'];
 $queueName = $config['deploy']['deploy_queue'];
 $bundleName = $config['bundle']['name'];
-$file  = $config['bundle']['file'];
-$description = $config['bundle']['description'] ?? 'No description';
 
+$filestoBundle = [];
 
-if (!file_exists($file)) {
-    //need to add a checker for all files we are bundling for now one file for testing
-    echo "Error: File $file does not exist.\n";
-    exit(1);
+foreach ($config['bundle'] as $key => $value) {
+    if (stripos($key, 'file') === 0 && !empty(trim($value))) {
+        $filesToBundle[] = trim($value);
+    }
 }
 
 
@@ -45,7 +44,9 @@ $gzFile  = "{$tarFiles_stored }/{$bundleName}_v{$nextVersion}.tar.gz";
 
 try {
     $phar = new PharData($tarFile);
-    $phar->addFile($file, basename($file));
+    foreach ($filesToBundle as $f) {
+        $phar->addFile($f, basename($f));
+    }
     $phar->compress(Phar::GZ);
     unset($phar);
     unlink($tarFile);
