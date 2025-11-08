@@ -44,7 +44,9 @@ $gzFile  = "{$tarFiles_stored }/{$bundleName}_v{$nextVersion}.tar.gz";
 
 try {
     $phar = new PharData($tarFile);
-    $phar->addFile($file, basename($file));
+    foreach ($filesToBundle as $f) {
+        $phar->addFile($f, basename($f));
+    }
     $phar->compress(Phar::GZ);
     unset($phar);
     unlink($tarFile);
