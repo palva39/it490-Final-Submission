@@ -57,6 +57,11 @@ function requestProcessor(array $req) {
         $path = "$dir/{$filepath}";
         $binary = base64_decode((string)$filedata, true);
         
+        $filename = basename($filepath);
+        $savePath = "$dir/$filename";
+        $binary = base64_decode((string)$filedata, true);
+        file_put_contents($savePath, $binary);
+        $filepath = $savePath;
 
         $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?,?)";
         try {
