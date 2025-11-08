@@ -54,7 +54,7 @@ function requestProcessor(array $req) {
         if ($name === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
 
         $dir = '/home/vboxuser/git/it490-Final-Submission/tarFiles';
-        $path = "$dir/{$filename}";
+        $path = "$dir/{$filepath}";
         $binary = base64_decode((string)$filedata, true);
         
 
