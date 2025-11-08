@@ -50,15 +50,18 @@ function requestProcessor(array $req) {
         $status = (string)($req['status'] ?? 'new');
         $filepath = trim((string)($req['filepath'] ?? ''));
         $filedata = $req['filedata'] ?? null;
-        
-         $binary = base64_decode((string)$filedata, true);
 
         if ($name === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
 
-        $sql = "INSERT INTO bundles (name, version, status, filepath, filedata) VALUES (?,?,?,?,?)";
+        $dir = '/home/vboxuser/git/it490-Final-Submission/tarFiles';
+        $path = "$dir/{$filename}";
+        $binary = base64_decode((string)$filedata, true);
+        
+
+        $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?,?)";
         try {
           $stmt = pdo()->prepare($sql);
-          $stmt->execute([$name, $version, $status, $filepath, $filedata]);
+          $stmt->execute([$name, $version, $status, $filepath]);
         } catch (PDOException $e) {
           if (strpos($e->getMessage(), 'Duplicate') !== false) {
             return fail('duplicate name+version');
