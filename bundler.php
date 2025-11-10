@@ -56,7 +56,26 @@ try {
     exit(1);
 }
 
-$fileData = base64_encode(file_get_contents($gzFile));
+//scp file to deployment system to the folder /tarFiles
+$sourceFilePath = "{$gzFile}"; // Path to the tar.gz file on the PHP-executing VM
+$destinationUser = 'vboxuser'; // Username on the destination VM
+$destinationHost = '100.76.145.42'; // IP or hostname of the destination VM
+$destinationPath = '/home/vboxuser/git/it490-Final-Submission/tarFiles/'; // Directory on the destination VM where the file will be copied
+
+$scpExecute = "scp {$sourceFilePath} {$destinationUser}@{$destinationHost}:{$destinationPath}";
+
+$output = [];
+$return_var = 0;
+exec($scpExecute, $output, $return_var);
+
+if ($return_var === 0) {
+    echo "File transferred successfully.\n";
+} else {
+    echo "Error transferring file. Return code: {$return_var}\n";
+    echo "Output:\n";
+    echo implode("\n", $output);
+}
+
 
 $register = $client->send_request([
     'type'     => 'register_bundle',
@@ -64,7 +83,6 @@ $register = $client->send_request([
     'version'  => $nextVersion,
     'status'   => 'new',
     'filepath' => $gzFile,
-    'filedata' => $fileData
 ]);
 
 
