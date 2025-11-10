@@ -106,6 +106,7 @@ class rabbitMQServer
         }
         $queue->ack($msg->getDeliveryTag());
         echo "processed one-way message\n";
+        usleep(50000);
     }
 
     function process_requests($callback)
