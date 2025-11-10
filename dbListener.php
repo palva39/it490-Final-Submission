@@ -5,10 +5,10 @@ require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 
-const DB_HOST = '127.0.0.1';
-const DB_NAME = 'gamehub';
-const DB_USER = 'dbListener';
-const DB_PASS = 'listening123';
+const DB_HOST = '100.117.9.41';
+const DB_NAME = 'gameTest';
+const DB_USER = 'loginapp';
+const DB_PASS = 'loginappPass123';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -33,7 +33,7 @@ function doLogin(string $username, string $password): array {
   }
   try {
     $pdo = getPDO();
-    $stmt = $pdo->prepare('SELECT id, username, password FROM users WHERE username = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, username, phone, password FROM users WHERE username = ? LIMIT 1');
     $stmt->execute([$username]);
     $row = $stmt->fetch();
     if (!$row) return ['success' => false, 'message' => 'Invalid credentials'];
@@ -49,22 +49,143 @@ function doLogin(string $username, string $password): array {
       $upd->execute([$newHash, $row['id']]);
     }
 
-    $key = bin2hex(random_bytes(32));
-    $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
-    $ins = $pdo->prepare('INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?,?,?)');
-    $ins->execute([$row['id'], $key, $exp]);
+    //new code for MFA
+    $mfaCode = generate_MFA_code();
+    $expiresAt = (new DateTime('+5 minutes'))->format('Y-m-d H:i:s');
+        
+    $deleteOldCodes = $pdo->prepare('DELETE FROM mfaCodes WHERE user_id = ? AND verified = 0');
+    $deleteOldCodes->execute([$row['id']]);
+        
+    //insert new MFA code
+    $addNewCode = $pdo->prepare('INSERT INTO mfaCodes (user_id, code, expires) VALUES (?, ?, ?)');
+    $addNewCode->execute([$row['id'], $mfaCode, $expiresAt]);
+        
+    //send the text
+    $textMessageSent = send_MFA_text($row['phone'], $row['username'], $mfaCode);
+        
+    if (!$textMessageSent) {
+      return ['success' => false, 'message' => 'Failed to send text message'];
+    }
+        
+    return [
+      'success' => true,
+      'message' => 'A verification code has been sent to your phone',
+      'requires_mfa' => true,
+      'username' => $username
+    ];
 
-    return ['success'=>true,'message'=>'Login successful','username'=>$row['username'],'session_key'=>$key,'expires_at'=>$exp];
   } catch (Throwable $e) {
     error_log('[doLogin] DB error: ' . $e->getMessage());
     return ['success' => false, 'message' => 'Server error'];
   }
 }
 
-function doRegister(string $username, string $password): array {
+//For MFA
+function verify_MFA_code(string $username, string $code): array {
+    if ($code === '') {
+        return ['success' => false, 'message' => 'Verification code required'];
+    }
+    
+    try {
+        $pdo = getPDO();
+        
+        //get userID
+        $userStmt = $pdo->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
+        $userStmt->execute([$username]);
+        $user = $userStmt->fetch();
+        $userId = $user['id'];
+                
+        //get code
+        $stmt = $pdo->prepare(
+            'SELECT m.id, u.username 
+             FROM mfaCodes m
+             JOIN users u ON m.user_id = u.id 
+             WHERE m.user_id = ? 
+             AND m.code = ? 
+             AND m.verified = 0 
+             AND m.expires > NOW() 
+             LIMIT 1'
+        );
+        $stmt->execute([$userId, $code]);
+        $row = $stmt->fetch();
+        
+        if (!$row) {
+            return ['success' => false, 'message' => 'Invalid or expired code'];
+        }
+        
+        // Mark code as used so that it is not used again
+        $updateUsedCode = $pdo->prepare('UPDATE mfaCodes SET verified = 1 WHERE id = ?');
+        $updateUsedCode->execute([$row['id']]);
+        
+        $key = bin2hex(random_bytes(32));
+        $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
+        $ins = $pdo->prepare('INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?, ?, ?)');
+        $ins->execute([$userId, $key, $exp]);
+        
+        return [
+            'success' => true,
+            'message' => 'Login successful',
+            'username' => $row['username'],
+            'session_key' => $key,
+            'expires_at' => $exp
+        ];
+        
+    } catch (Throwable $e) {
+        error_log('[verifyMFACode] DB error: ' . $e->getMessage());
+        return ['success' => false, 'message' => 'Server error'];
+    }
+}
+
+function generate_MFA_code(): string {
+  return sprintf('%04d', rand(0, 9999));
+}
+
+function send_MFA_text(string $phone_number, string $username, string $code) {
+    $url = "https://api.topmessage.com/v1/messages";
+    $api_key = "fce9d3b65963efb629469fc29a0e3678"; //change based on trial api key
+    $trialNumber = "+18336398252"; //change based on trial number
+
+    $headers = [
+        "Content-Type: application/json",
+        "X-TopMessage-Key: {$api_key}"
+    ];
+
+    $payload = [
+        "data" => [
+            "from" => $trialNumber,
+            "to" => ["+1{$phone_number}"],
+            "text" => "GameHub code: {$code}\nExpires in 5 minutes"
+        ]
+    ];
+
+    $options = [
+        "http" => [
+            "method"  => "POST",
+            "header"  => implode("\r\n", $headers),
+            "content" => json_encode($payload),
+            "ignore_errors" => true 
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = file_get_contents($url, false, $context);
+
+    if ($response === false) {;
+        print_r($http_response_header);
+    } else {
+        echo "Response:\n" . $response;
+    }
+
+    return $response;
+}
+
+//End of MFA
+
+function doRegister(string $username, string $password, string $phoneNumber): array { 
   $username = trim($username);
   $password = (string)$password;
-  if ($username === '' || strlen($password) < 4) {
+  $phone = preg_replace('/[^0-9]/', '', $phoneNumber);
+  if ($username === '' || strlen($password) < 4 || strlen($phone) !== 10) { 
     return ['success' => false, 'message' => 'Invalid input'];
   }
   try {
@@ -74,8 +195,8 @@ function doRegister(string $username, string $password): array {
     if ($chk->fetchColumn()) return ['success'=>false,'message'=>'Username already exists'];
 
     $hash = password_hash($password, PASSWORD_DEFAULT);
-    $ins  = $pdo->prepare('INSERT INTO users (username, password) VALUES (?, ?)');
-    $ins->execute([$username, $hash]);
+    $ins  = $pdo->prepare('INSERT INTO users (username, phone, password) VALUES (?, ?, ?)'); 
+    $ins->execute([$username, $phone, $hash]); 
 
     return ['success' => true, 'message' => 'Registration successful'];
   } catch (PDOException $e) {
@@ -1032,8 +1153,15 @@ function forumPostMessage(string $sessionId, int $forumId, string $message, ?int
         $rawgIdForNotif = (int)($fg->fetchColumn() ?: 0);
 
         if ($rawgIdForNotif > 0) {
-          $n = $pdo->prepare("INSERT INTO notifications (user_id, rawg_id, notification_type) VALUES (?, ?, 'comment')");
-          $n->execute([$parentUserId, $rawgIdForNotif]);
+          $stmt1 = $pdo->prepare('SELECT title FROM forums WHERE id = ? LIMIT 1');
+          $stmt1->execute([$forumId]);
+          $forumTitle = $stmt1->fetchColumn();
+
+          $stmt2 = $pdo->prepare('SELECT phone FROM users WHERE id = ? LIMIT 1');
+          $stmt2->execute([$parentUserId]);
+          $phone = $stmt2->fetchColumn();
+
+          send_reply_notification($phone, $forumTitle);
         }
       }
     }
@@ -1046,9 +1174,49 @@ function forumPostMessage(string $sessionId, int $forumId, string $message, ?int
   }
 }
 
+//for replies notification
+function send_reply_notification(string $phone_number, string $forumTitle) { 
+  $url = "https://api.topmessage.com/v1/messages";
+  $api_key = "fce9d3b65963efb629469fc29a0e3678"; //change based on trial api key
+  $trialNumber = "+18336398252"; //change based on trial number
+
+    $header = [
+        "Content-Type: application/json",
+        "X-TopMessage-Key: {$api_key}"
+    ];
+
+    $payload = [
+        "data" => [
+            "from" => $trialNumber, 
+            "to" => ["+1{$phone_number}"],
+            "text" => "You were mentioned in the forum '{$forumTitle}'"
+        ]
+    ];
+
+    $options = [
+        "http" => [
+            "method"  => "POST",
+            "header"  => implode("\r\n", $header),
+            "content" => json_encode($payload),
+            "ignore_errors" => true 
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = file_get_contents($url, false, $context);
+
+    if ($response === false) {;
+        print_r($http_response_header);
+    } else {
+        echo "Response:\n" . $response;
+    }
+
+    return $response;
+}
+//end of replies notification
 
 /* ===== Reviews ===== */
-
+//edit this to send notif to user with this in wishlist.
 function reviewCreate(string $sessionId, int $rawgId, string $title, string $body, float $rating): array {
   $title  = trim($title);
   $body   = trim($body);
@@ -1450,9 +1618,10 @@ function requestProcessor(array $request) {
 
   switch ($request['type']) {
     case 'login':              return doLogin((string)($request['username'] ?? ''), (string)($request['password'] ?? ''));
-    case 'register':           return doRegister((string)($request['username'] ?? ''), (string)($request['password'] ?? ''));
+    case 'register':           return doRegister((string)($request['username'] ?? ''), (string)($request['password'] ?? ''), (string)($request['phone'] ?? '')); //For phone
     case 'validate_session':   return doValidate((string)($request['sessionId'] ?? ''));
     case 'logout':             return doLogout((string)($request['sessionId'] ?? ''));
+    case 'mfa_verification': return verify_MFA_code((string)($request['username'] ?? ''), (string)($request['code'] ?? '')); //For phone
 
     case 'games_list': {
       $page   = (int)($request['page'] ?? 1);
