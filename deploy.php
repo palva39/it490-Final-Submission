@@ -49,19 +49,8 @@ function requestProcessor(array $req) {
         $version = (int)($req['version'] ?? 0);
         $status = (string)($req['status'] ?? 'new');
         $filepath = trim((string)($req['filepath'] ?? ''));
-        $filedata = $req['filedata'] ?? null;
 
         if ($name === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
-
-        $dir = '/home/vboxuser/git/it490-Final-Submission/tarFiles';
-        $path = "$dir/{$filepath}";
-        $binary = base64_decode((string)$filedata, true);
-        
-        $filename = basename($filepath);
-        $savePath = "$dir/$filename";
-        $binary = base64_decode((string)$filedata, true);
-        file_put_contents($savePath, $binary);
-        $filepath = $savePath;
 
         $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?,?)";
         try {
