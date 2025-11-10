@@ -90,6 +90,7 @@ class rabbitMQServer
 
                 // ACK original request now that we published a reply
                 $queue->ack($msg->getDeliveryTag());
+                usleep(50000);
                 return;
             }
 
