@@ -50,6 +50,10 @@ function requestProcessor(array $req) {
         $status = (string)($req['status'] ?? 'new');
         $filepath = trim((string)($req['filepath'] ?? ''));
 
+        $__base = '/home/vboxuser/tarFiles';
+        $__file = basename($filepath);
+        $filepath = rtrim($__base, '/').($__file !== '' ? '/'.$__file : '');
+
         if ($name === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
 
         $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?,?)";
