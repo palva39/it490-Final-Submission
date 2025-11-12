@@ -50,7 +50,7 @@ function requestProcessor(array $req) {
         $status = (string)($req['status'] ?? 'new');
         $filepath = trim((string)($req['filepath'] ?? ''));
 
-        $__base = '/home/vboxuser/tarFiles';
+        $__base = '/home/vboxuser/temp';
         $__file = basename($filepath);
         $filepath = rtrim($__base, '/').($__file !== '' ? '/'.$__file : '');
 
