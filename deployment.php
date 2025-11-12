@@ -13,9 +13,13 @@ const DB_NAME = 'bundles';
 const DB_USER = 'deploy';
 const DB_PASS = 'deploy123'; 
 
-if ($argc < 3) {
-    echo "Usage: php {$argv[0]} <version#> <queue>\n";
+if ($argc < 4) {
+    echo "Usage: php {$argv[0]} <version#> <queue> <bundleName>\n";
     exit(1);
 }
+
+$version = (int)$argv[1];
+$queue   = $argv[2];
+$bundleName = $argv[3];
 
 ?>
