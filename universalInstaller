@@ -1,0 +1,24 @@
+#!/usr/bin/php
+<?php
+declare(strict_types=1);
+error_reporting(E_ALL);
+
+require_once('path.inc');
+require_once('get_host_info.inc');
+require_once('rabbitMQLib.inc');
+
+function logit(string $m): void {
+  echo "[installer-listener] $m\n";
+}
+
+function requestProcessor(array $req) {
+    logit("Received request:");
+    print_r($req);
+    return ['ok' => true, 'msg' => 'Message received successfully'];
+}
+
+
+//QA Backend Queue Installer 
+$server = new rabbitMQServer("testRabbitMQ.ini", "QA_Backend");
+$server->process_requests('requestProcessor');
+?>
