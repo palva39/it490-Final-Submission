@@ -22,4 +22,57 @@ $version = (int)$argv[1];
 $queue   = $argv[2];
 $bundleName = $argv[3];
 
+
+function pdo(): PDO {
+    static $pdo = null;
+    if ($pdo) return $pdo;
+    $dsn = 'mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset=utf8mb4';
+    $opt = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+    return $pdo = new PDO($dsn, DB_USER, DB_PASS, $opt);
+}
+
+try {
+    $stmt = pdo()->prepare("SELECT filepath FROM bundles WHERE name=? AND version=? LIMIT 1");
+    $stmt->execute([$bundleName, $version]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        echo "Error: No record found for {$bundleName} version {$version}\n";
+        exit(1);
+    }
+
+    $filePath = $row['filepath'];
+    echo "Found bundle: {$filePath}\n";
+
+} catch (Throwable $e) {
+    echo "Database error: {$e->getMessage()}\n";
+    exit(1);
+}
+
+
+try {
+    $client = new rabbitMQClient('testRabbitMQ.ini', $queue);
+
+    $response = $client->send_request([
+        'type'    => 'install',
+        'name'    => $bundleName,
+        'version' => $version,
+        'path'    => $filePath
+    ]);
+
+    if (is_array($response) && !empty($response['ok'])) {
+        echo "Sent install message for {$bundleName} v{$version} to {$queue}\n";
+    } else {
+        echo "Installer failed to get data.\n";
+        print_r($response);
+    }
+
+} catch (Throwable $e) {
+    echo "Error sending message: {$e->getMessage()}\n";
+    exit(1);
+}
 ?>
