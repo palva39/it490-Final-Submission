@@ -12,6 +12,10 @@ $WEB_ROOT= "/var/www/sample";
 $DEPLOY_DIR= "/deploy";
 $DEPLOY_HOST= "10.0.12.2";
 
+function logit(string $m): void {
+  echo "[installer-listener] $m\n";
+}
+
 //installing bundle function
 function bundleInstall($req){
   global $WEB_ROOT, $DEPLOY_DIR, $DEPLOY_HOST;
@@ -21,8 +25,11 @@ function bundleInstall($req){
   $path = $req['path'] ??"";
 
   if ($name == "" || $version == "" || $path == ""){
+    logit("failed because missing a field");
     return ["okay"=> false, "errror"=> "missing a field"];
   }
+
+  logit("install starting of $name v$version");
 
   //making or finding the deploy folder
   shell_exec("mkdir -p $DEPLOY_DIR");
@@ -34,18 +41,19 @@ function bundleInstall($req){
   shell_exec("scp -q $remote $local");
 
   if (!file_exists($local)){
+    logit("copy failed");
     return ["okay"=> false, "error"=> "failed to copy the bundle"];
   }
 
   //extracting new bundle into folder
+  logit("bundle extracting");
   shell_exec("tar -xzf $local -C $WEB_ROOT");
 
+  logit("install done for $name v$version");
   return ["okay"=> true, "version"=> $version, "bundle"=> $name];
 }
 
-function logit(string $m): void {
-  echo "[installer-listener] $m\n";
-}
+
 
 function requestProcessor(array $req) {
     logit("Received request:");
