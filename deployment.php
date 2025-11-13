@@ -52,7 +52,7 @@ function pdo(): PDO {
 
 $status= null;
 if (stripos($queue, 'QA') === 0) {
-    $statusN= 'new';
+    $status = 'new';
 } elseif (stripos($queue, 'PROD') === 0) {
     $status= 'pass';
 }
