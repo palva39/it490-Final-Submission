@@ -29,14 +29,13 @@ const DB_PASS = 'deploy123';
 
 //fix so user doesnt enter version number instead only bundle name and database gets the latest version number, only args should queue and bundlename
 //add checker for PROD, should get the latest version number and status is pass
-if ($argc < 4) {
-    echo "Usage: php {$argv[0]} <version#> <queue> <bundleName>\n";
+if ($argc < 3) {
+    echo "Usage: php {$argv[0]} <queue> <bundleName>\n";
     exit(1);
 }
 
-$version = (int)$argv[1];
-$queue   = $argv[2];
-$bundleName = $argv[3];
+$queue   = $argv[1];
+$bundleName = $argv[2];
 
 
 function pdo(): PDO {
@@ -49,6 +48,13 @@ function pdo(): PDO {
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
     return $pdo = new PDO($dsn, DB_USER, DB_PASS, $opt);
+}
+
+$status= null;
+if (stripos($queue, 'QA') === 0) {
+    $statusN= 'new';
+} elseif (stripos($queue, 'PROD') === 0) {
+    $status= 'pass';
 }
 
 try {
