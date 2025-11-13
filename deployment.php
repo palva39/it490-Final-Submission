@@ -68,6 +68,13 @@ if ($statusNeeded !== null) {
         $stmt->execute([$bundleName, $statusNeeded]);
 }
 
+$row = $stmt -> fetch();
+
+$version  = (int)$row['version'];
+$filePath = $row['filepath'];
+
+
+
 try {
     $client = new rabbitMQClient('testRabbitMQ.ini', $queue);
 
