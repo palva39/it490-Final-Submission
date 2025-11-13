@@ -57,24 +57,16 @@ if (stripos($queue, 'QA') === 0) {
     $status= 'pass';
 }
 
-try {
-    $stmt = pdo()->prepare("SELECT filepath FROM bundles WHERE name=? AND version=? LIMIT 1");
-    $stmt->execute([$bundleName, $version]);
-    $row = $stmt->fetch();
-
-    if (!$row) {
-        echo "Error: No record found for {$bundleName} version {$version}\n";
-        exit(1);
-    }
-
-    $filePath = $row['filepath'];
-    echo "Found bundle: {$filePath}\n";
-
-} catch (Throwable $e) {
-    echo "Database error: {$e->getMessage()}\n";
-    exit(1);
+if ($statusNeeded !== null) {
+        $stmt = pdo()->prepare("
+            SELECT version, filepath 
+            FROM bundles 
+            WHERE name = ? AND status = ? 
+            ORDER BY version DESC 
+            LIMIT 1
+        ");
+        $stmt->execute([$bundleName, $statusNeeded]);
 }
-
 
 try {
     $client = new rabbitMQClient('testRabbitMQ.ini', $queue);
