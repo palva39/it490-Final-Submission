@@ -65,7 +65,7 @@ if ($statusNeeded !== null) {
             ORDER BY version DESC 
             LIMIT 1
         ");
-        $stmt->execute([$bundleName, $statusNeeded]);
+        $stmt->execute([$bundleName, $status]);
 }
 
 $row = $stmt -> fetch();
