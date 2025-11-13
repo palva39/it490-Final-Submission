@@ -7,6 +7,20 @@ require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 
+//these variables can be changed for whatever server it will lives on 
+$WEB_ROOT= "/var/www/sample";
+$DEPLOY_DIR= "/deploy";
+$DEPLOY_HOST= "10.0.12.2";
+
+//installing bundle function
+function bundleInsatll($req){
+
+  $name = $req['name'] ??"";
+  $version = $req['version'] ??"";
+  $path = $req['path'] ??"";
+
+}
+
 function logit(string $m): void {
   echo "[installer-listener] $m\n";
 }
