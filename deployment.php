@@ -26,14 +26,16 @@ const DB_NAME = 'bundles';
 const DB_USER = 'deploy';
 const DB_PASS = 'deploy123'; 
 
-if ($argc < 4) {
-    echo "Usage: php {$argv[0]} <version#> <queue> <bundleName>\n";
+
+//fix so user doesnt enter version number instead only bundle name and database gets the latest version number, only args should queue and bundlename
+//add checker for PROD, should get the latest version number and status is pass
+if ($argc < 3) {
+    echo "Usage: php {$argv[0]} <queue> <bundleName>\n";
     exit(1);
 }
 
-$version = (int)$argv[1];
-$queue   = $argv[2];
-$bundleName = $argv[3];
+$queue   = $argv[1];
+$bundleName = $argv[2];
 
 
 function pdo(): PDO {
@@ -48,23 +50,39 @@ function pdo(): PDO {
     return $pdo = new PDO($dsn, DB_USER, DB_PASS, $opt);
 }
 
-try {
-    $stmt = pdo()->prepare("SELECT filepath FROM bundles WHERE name=? AND version=? LIMIT 1");
-    $stmt->execute([$bundleName, $version]);
-    $row = $stmt->fetch();
+$status= null;
+if (stripos($queue, 'QA') === 0) {
+    $status = 'new';
+} elseif (stripos($queue, 'PROD') === 0) {
+    $status= 'pass';
+}
 
-    if (!$row) {
-        echo "Error: No record found for {$bundleName} version {$version}\n";
-        exit(1);
-    }
+if ($status !== null) {
+        $stmt = pdo()->prepare("
+            SELECT version, filepath 
+            FROM bundles 
+            WHERE name = ? AND status = ? 
+            ORDER BY version DESC 
+            LIMIT 1
+        ");
+        $stmt->execute([$bundleName, $status]);
+}
 
-    $filePath = $row['filepath'];
-    echo "Found bundle: {$filePath}\n";
+$row = $stmt -> fetch();
 
-} catch (Throwable $e) {
-    echo "Database error: {$e->getMessage()}\n";
+if (!$row) {
+    echo "Error: No record found for bundle '{$bundleName}' with status '{$status}'.\n";
     exit(1);
 }
+
+$version  = (int)$row['version'];
+$filePath = $row['filepath'];
+
+ echo "Found bundle: {$bundleName} v{$version} ({$filePath})";
+    if ($status !== null) {
+        echo " with status '{$status}'";
+    }
+    echo "\n";
 
 
 try {
