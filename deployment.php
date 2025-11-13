@@ -26,6 +26,8 @@ const DB_NAME = 'bundles';
 const DB_USER = 'deploy';
 const DB_PASS = 'deploy123'; 
 
+
+//fix so user doesnt enter version number instead only bundle name and database gets the latest version number, only args should queue and bundlename
 if ($argc < 4) {
     echo "Usage: php {$argv[0]} <version#> <queue> <bundleName>\n";
     exit(1);
