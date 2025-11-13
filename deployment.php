@@ -70,6 +70,11 @@ if ($status !== null) {
 
 $row = $stmt -> fetch();
 
+if (!$row) {
+    echo "Error: No record found for bundle '{$bundleName}' with status '{$status}'.\n";
+    exit(1);
+}
+
 $version  = (int)$row['version'];
 $filePath = $row['filepath'];
 
