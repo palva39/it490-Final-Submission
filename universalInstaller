@@ -7,13 +7,68 @@ require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 
+//these variables can be changed for whatever server it will lives on/ as well as the host vm name
+$DEPLOY_DIR= "/home/vboxuser/temp";
+$DEPLOY_HOST= "100.76.145.42";
+
 function logit(string $m): void {
   echo "[installer-listener] $m\n";
 }
 
+//installing bundle function
+function bundleInstall($req){
+  global $DEPLOY_DIR, $DEPLOY_HOST;
+
+  $name = $req['name'] ??"";
+  $version = $req['version'] ??"";
+  $path = $req['path'] ??"";
+
+  logit("install starting of $name v$version");
+
+  //making or finding the deploy folder
+  shell_exec("mkdir -p $DEPLOY_DIR");
+
+  //get a copy of the new nundle from deploy server
+  $remote = "vboxuser@$DEPLOY_HOST:$path";
+  $local = "$DEPLOY_DIR/" . basename($path);
+
+  shell_exec("scp -q $remote $local");
+
+  if (!file_exists($local)){
+    logit("copy failed");
+    return ["okay"=> false, "error"=> "failed to copy the bundle"];
+  }
+
+  //extracting tgz file and reading the commands in the ini file
+  logit("bundle extracting");
+  shell_exec("tar -xvzf $local");
+
+  $config = parse_ini_file("$DEPLOY_DIR/getInfo.ini");
+
+  foreach ($config as $key => $value) {
+      if (strpos($key, 'command') === 0) {
+          echo "Running $key: $value\n";
+          $output = shell_exec($value);
+          echo "Output:\n" . ($output ?: "[no output returned]") . "\n\n";
+      }
+  }
+
+
+
+  logit("install done for $name v$version");
+  return ["okay"=> true, "version"=> $version, "bundle"=> $name];
+}
+
+
+
 function requestProcessor(array $req) {
     logit("Received request:");
     print_r($req);
+
+    if (isset($req['type']) && $req['type'] == 'install'){
+      return bundleInstall($req);
+    }
+    
     return ['ok' => true, 'msg' => 'Message received successfully'];
 }
 
