@@ -58,6 +58,11 @@ function bundleInstall($req){
 function requestProcessor(array $req) {
     logit("Received request:");
     print_r($req);
+
+    if (isset($req['type']) && $req['type'] == 'install'){
+      return bundleInstall($req);
+    }
+    
     return ['ok' => true, 'msg' => 'Message received successfully'];
 }
 
