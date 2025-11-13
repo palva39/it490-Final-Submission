@@ -13,12 +13,34 @@ $DEPLOY_DIR= "/deploy";
 $DEPLOY_HOST= "10.0.12.2";
 
 //installing bundle function
-function bundleInsatll($req){
+function bundleInstall($req){
+  global $WEB_ROOT, $DEPLOY_DIR, $DEPLOY_HOST;
 
   $name = $req['name'] ??"";
   $version = $req['version'] ??"";
   $path = $req['path'] ??"";
 
+  if ($name == "" || $version == "" || $path == ""){
+    return ["okay"=> false, "errror"=> "missing a field"];
+  }
+
+  //making or finding the deploy folder
+  shell_exec("mkdir -p $DEPLOY_DIR");
+
+  //get a copy of the new nundle from deploy server
+  $remote = "deploy@$DEPLOY_HOST:$path";
+  $local = "$DEPLOY_DIR/" . basename($path);
+
+  shell_exec("scp -q $remote $local");
+
+  if (!file_exists($local)){
+    return ["okay"=> false, "error"=> "failed to copy the bundle"];
+  }
+
+  //extracting new bundle into folder
+  shell_exec("tar -xzf $local -C $WEB_ROOT");
+
+  return ["okay"=> true, "version"=> $version, "bundle"=> $name];
 }
 
 function logit(string $m): void {
