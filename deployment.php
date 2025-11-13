@@ -73,6 +73,11 @@ $row = $stmt -> fetch();
 $version  = (int)$row['version'];
 $filePath = $row['filepath'];
 
+ echo "Found bundle: {$bundleName} v{$version} ({$filePath})";
+    if ($statusNeeded !== null) {
+        echo " with status '{$statusNeeded}'";
+    }
+    echo "\n";
 
 
 try {
