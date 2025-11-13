@@ -57,7 +57,7 @@ if (stripos($queue, 'QA') === 0) {
     $status= 'pass';
 }
 
-if ($statusNeeded !== null) {
+if ($status !== null) {
         $stmt = pdo()->prepare("
             SELECT version, filepath 
             FROM bundles 
@@ -74,8 +74,8 @@ $version  = (int)$row['version'];
 $filePath = $row['filepath'];
 
  echo "Found bundle: {$bundleName} v{$version} ({$filePath})";
-    if ($statusNeeded !== null) {
-        echo " with status '{$statusNeeded}'";
+    if ($status !== null) {
+        echo " with status '{$status}'";
     }
     echo "\n";
 
