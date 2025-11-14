@@ -88,19 +88,14 @@ $filePath = $row['filepath'];
 try {
     $client = new rabbitMQClient('testRabbitMQ.ini', $queue);
 
-    $response = $client->send_request([
-        'type'    => 'install',
-        'name'    => $bundleName,
-        'version' => $version,
-        'path'    => $filePath
+    $client->publish([
+    'type'    => 'install',
+    'name'    => $bundleName,
+    'version' => $version,
+    'path'    => $filePath
     ]);
 
-    if (is_array($response) && !empty($response['ok'])) {
-        echo "Sent install message for {$bundleName} v{$version} to {$queue}\n";
-    } else {
-        echo "Installer failed to get data.\n";
-        print_r($response);
-    }
+    echo "Sent install message for {$bundleName} v{$version} to {$queue}\n";
 
 } catch (Throwable $e) {
     echo "Error sending message: {$e->getMessage()}\n";
