@@ -14,7 +14,7 @@ $DEPLOY_HOST= "100.76.145.42";
 function logit(string $m): void {
   echo "[installer-listener] $m\n";
 }
-
+logit("Universal Listener Waiting for Deployment");
 //installing bundle function
 function bundleInstall($req){
   global $DEPLOY_DIR, $DEPLOY_HOST;
@@ -41,7 +41,7 @@ function bundleInstall($req){
 
   //extracting tgz file and reading the commands in the ini file
   logit("bundle extracting");
-  shell_exec("tar -xvzf $local");
+  shell_exec("tar -xvzf " . escapeshellarg($local) . " -C " . escapeshellarg($DEPLOY_DIR));
 
   $config = parse_ini_file("$DEPLOY_DIR/getInfo.ini");
 
@@ -52,10 +52,13 @@ function bundleInstall($req){
           echo "Output:\n" . ($output ?: "[no output returned]") . "\n\n";
       }
   }
-
-
-
   logit("install done for $name v$version");
+
+
+  logit("Deleting files now...Goodbye!");
+  shell_exec("sudo rm -rf /home/vboxuser/temp/*");
+
+
   return ["okay"=> true, "version"=> $version, "bundle"=> $name];
 }
 
