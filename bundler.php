@@ -56,11 +56,11 @@ try {
     exit(1);
 }
 
-//scp file to deployment system to the folder /tarFiles
+
 $sourceFilePath = "{$gzFile}"; // Path to the tar.gz file on the PHP-executing VM
 $destinationUser = 'vboxuser'; // Username on the destination VM
 $destinationHost = '100.76.145.42'; // IP or hostname of the destination VM
-$destinationPath = '/home/vboxuser/git/it490-Final-Submission/tarFiles/'; // Directory on the destination VM where the file will be copied
+$destinationPath = '/home/vboxuser/temp/'; // Directory on the destination VM where the file will be copied
 
 $scpExecute = "scp {$sourceFilePath} {$destinationUser}@{$destinationHost}:{$destinationPath}";
 
