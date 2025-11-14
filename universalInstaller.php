@@ -27,7 +27,8 @@ function bundleInstall($req){
 
   //making or finding the deploy folder
   shell_exec("mkdir -p $DEPLOY_DIR");
-
+  shell_exec("chown -R vboxuser:vboxuser $DEPLOY_DIR");
+  
   //get a copy of the new nundle from deploy server
   $remote = "vboxuser@$DEPLOY_HOST:$path";
   $local = "$DEPLOY_DIR/" . basename($path);
