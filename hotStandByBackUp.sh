@@ -35,10 +35,13 @@ while true; do
     if [ "$isBackup" = true ]; then
         if [ "$alreadyRunning" = true ]; then
             stopApache
-            currentlyRunning=false
+            alreadyRunning=false
         fi
     else
-        startApache
+        if [ "$alreadyRunning" = false ]; then
+            startApache
+            alreadyRunning=true
+        fi
     fi 
     
     # Interval between pings to check server status
