@@ -882,12 +882,12 @@ function doRatingSet(string $sessionId, int $rawgId, float $value): array {
     if (!$uid) return ['success'=>false,'message'=>'Invalid/expired session'];
 
     $stmt = $pdo->prepare("
-      INSERT INTO ratings (user_id, rawg_id, value) VALUES (?, ?, ?)
+      INSERT INTO game_ratings (user_id, rawg_id, value) VALUES (?, ?, ?)
       ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = CURRENT_TIMESTAMP
     ");
     $stmt->execute([$uid, $rawgId, $value]);
 
-    $avg = (float)$pdo->query("SELECT ROUND(AVG(value),1) FROM ratings WHERE rawg_id = ".((int)$rawgId))->fetchColumn();
+    $avg = (float)$pdo->query("SELECT ROUND(AVG(value),1) FROM game_ratings WHERE rawg_id = ".((int)$rawgId))->fetchColumn();
 
     // Best-effort: update games.user_rating if column exists
     try {
@@ -1253,19 +1253,35 @@ function reviewCreate(string $sessionId, int $rawgId, string $title, string $bod
 
     // also upsert into ratings to keep averages in one place
     $r = $pdo->prepare("
-      INSERT INTO ratings (user_id, rawg_id, value) VALUES (?,?,?)
+      INSERT INTO game_ratings (user_id, rawg_id, value) VALUES (?,?,?)
       ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = CURRENT_TIMESTAMP
     ");
     $r->execute([$uid, $rawgId, $rating]);
 
     // compute avg across ratings or reviews (use ratings table for consistency)
-    $avg = (float)$pdo->query("SELECT ROUND(AVG(value),1) FROM ratings WHERE rawg_id = ".((int)$rawgId))->fetchColumn();
+    $avg = (float)$pdo->query("SELECT ROUND(AVG(value),1) FROM game_ratings WHERE rawg_id = ".((int)$rawgId))->fetchColumn();
 
     // best-effort reflect in games.user_rating
     try {
       $upg = $pdo->prepare("UPDATE games SET user_rating = ? WHERE rawg_id = ?");
       $upg->execute([$avg, $rawgId]);
+
     } catch (Throwable $e) { error_log('[reviewCreate] user_rating warn: '.$e->getMessage()); }
+
+    //send messages to people with game on wishlist
+    $gameTitle = '';
+    $stmtGame = $pdo->prepare('SELECT name FROM games WHERE rawg_id = ? LIMIT 1');
+    $stmtGame->execute([$rawgId]);
+    $game = $stmtGame->fetch();
+    $gameTitle = $game['name'];
+  
+    $stmt1 = $pdo->prepare('SELECT u.phone FROM users AS u JOIN wishlist_games AS w ON u.id = w.user_id WHERE w.rawg_id = ?;');
+    $stmt1->execute([$rawgId]);
+    $phoneNumbers = $stmt1->fetchAll(PDO::FETCH_COLUMN);
+
+    foreach ($phoneNumbers as $phone) {
+      send_review_notification($phone, $gameTitle);
+    }
 
     // best-effort refresh cache
     try {
@@ -1288,6 +1304,46 @@ function reviewCreate(string $sessionId, int $rawgId, string $title, string $bod
     return ['success'=>false,'message'=>'Server error'];
   }
 }
+
+function send_review_notification(string $phone_number, string $gameTitle) { 
+  $url = "https://api.topmessage.com/v1/messages";
+  $api_key = "fce9d3b65963efb629469fc29a0e3678"; //change based on trial api key
+  $trialNumber = "+18336398252"; //change based on trial number
+
+    $header = [
+        "Content-Type: application/json",
+        "X-TopMessage-Key: {$api_key}"
+    ];
+
+    $payload = [
+        "data" => [
+            "from" => $trialNumber, 
+            "to" => ["+1{$phone_number}"],
+            "text" => "Info about the game on your wishlist: '{$gameTitle}' has been recently updated."
+        ]
+    ];
+
+    $options = [
+        "http" => [
+            "method"  => "POST",
+            "header"  => implode("\r\n", $header),
+            "content" => json_encode($payload),
+            "ignore_errors" => true 
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = file_get_contents($url, false, $context);
+
+    if ($response === false) {;
+        print_r($http_response_header);
+    } else {
+        echo "Response:\n" . $response;
+    }
+
+    return $response;
+}
+
 
 function reviewList(int $rawgId, int $page=1, int $pageSize=6): array {
   if ($rawgId <= 0) return ['success'=>false,'message'=>'Invalid game'];
@@ -1327,7 +1383,7 @@ function reviewList(int $rawgId, int $page=1, int $pageSize=6): array {
       ];
     }
 
-    $avg = (float)$pdo->query("SELECT ROUND(AVG(value),1) FROM ratings WHERE rawg_id = ".((int)$rawgId))->fetchColumn();
+    $avg = (float)$pdo->query("SELECT ROUND(AVG(value),1) FROM game_ratings WHERE rawg_id = ".((int)$rawgId))->fetchColumn();
     $totalPages = max(1, (int)ceil($total / $pageSize));
 
     return ['success'=>true,'items'=>$items,'page'=>$page,'pageSize'=>$pageSize,'total'=>$total,'totalPages'=>$totalPages,'avg'=>$avg];
