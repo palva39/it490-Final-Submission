@@ -14,9 +14,9 @@ if ($sid === '') {
   exit;
 }
 
-require_once('/home/vboxuser/git/rabbitmqphp/path.inc');
-require_once('/home/vboxuser/git/rabbitmqphp/get_host_info.inc');
-require_once('/home/vboxuser/git/rabbitmqphp/rabbitMQLib.inc');
+require_once('/home/craig/git/it490-Final-Submission/path.inc');
+require_once('/home/craig/git/it490-Final-Submission/get_host_info.inc');
+require_once('/home/craig/git/it490-Final-Submission/rabbitMQLib.inc');
 
 try {
   $client = new rabbitMQClient('testRabbitMQ.ini', 'loginServer');

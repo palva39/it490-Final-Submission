@@ -86,6 +86,23 @@
       background: #141420;
       color: var(--text);
     }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-2);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      user-select: none;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+      text-shadow: 0 0 8px rgba(124, 77, 255, 0.6);
+      transform: translateY(-1px);
+    }
 
   </style>
 </head>
@@ -101,22 +118,45 @@
     </svg>
     <span>GameHub</span>
   </div>
+  <div id="loginSection">
+    <h4 class="text-center mb-4 fw-semibold">Welcome Back</h4>
 
-  <h4 class="text-center mb-4 fw-semibold">Welcome Back</h4>
+    <form id="loginForm">
+      <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" required>
+      </div>
 
-  <form id="loginForm">
-    <div class="mb-3">
-      <label for="username" class="form-label">Username</label>
-      <input type="text" class="form-control" id="username" required>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" required>
+      </div>
+
+      <button type="submit" class="btn btn-login w-100">Login</button>
+    </form>
+  </div>
+
+
+  <div id="mfaSection" class="d-none">
+    <h4 class="text-center mb-2 fw-semibold">Enter Verification Code</h4>
+
+    <form id="mfaForm">
+      <div class="mb-3">
+        <label for="mfaCode" class="form-label text-center d-block">Verification Code</label>
+        <input type="text" class="form-control mfa-code-input" id="mfaCode" 
+               maxlength="4" pattern="[0-9]{4}" 
+               placeholder="####" required autocomplete="off">
+      </div>
+
+      <button type="submit" class="btn btn-login w-100">Verify Code</button>
+    </form>
+
+    <div class="text-center mt-3">
+      <span class="back-link" id="backToLogin">
+        <i class="bi bi-arrow-left"></i>Back to Login 
+      </span>
     </div>
-
-    <div class="mb-3">
-      <label for="password" class="form-label">Password</label>
-      <input type="password" class="form-control" id="password" required>
-    </div>
-
-    <button type="submit" class="btn btn-login w-100">Login</button>
-  </form>
+  </div>
 
   <div id="responseBox" class="alert mt-3 d-none"></div>
 
@@ -128,11 +168,14 @@
 </div>
 
 <script>
+let currentUname = '';
+
 document.getElementById("loginForm").addEventListener("submit", function(e) {
   e.preventDefault();
 
   let username = document.getElementById("username").value;
   let password = document.getElementById("password").value;
+  currentUname = username;
 
   let xhr = new XMLHttpRequest();
   xhr.open("POST", "login.php", true);
@@ -146,16 +189,56 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
         box.classList.remove("d-none", "alert-success", "alert-danger");
 
         if (res.success) {
-          box.classList.add("alert-success");
-          box.innerHTML = res.message;
-          console.log("✅ Database approved login for user:", res.username);
+          document.getElementById("loginSection").classList.add("d-none");
+          document.getElementById("mfaSection").classList.remove("d-none");
+          document.getElementById("responseBox").classList.add("d-none");
+          document.getElementById("mfaCode").focus();
+          console.log("MFA now required");
 
-          const u = res.username || username;
-          window.location.replace("/home.php");
         } else {
           box.classList.add("alert-danger");
           box.innerHTML = res.message;
           console.log("❌ Database rejected login:", res.message);
+        }
+      } catch (err) {
+        alert("Invalid server response loginForm: " + err);
+        console.error("Parse error:", err, "Raw response:", this.responseText);
+      }
+    }
+  };
+
+  xhr.send("uname=" + encodeURIComponent(username) + "&pword=" + encodeURIComponent(password));
+});
+
+document.getElementById("mfaForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  let code = document.getElementById("mfaCode").value;
+
+  let xhr = new XMLHttpRequest();
+  xhr.open("POST", "mfa_check.php", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+  xhr.onreadystatechange = function() {
+    if (this.readyState === 4 && this.status === 200) {
+      try {
+        let res = JSON.parse(this.responseText);
+        let box = document.getElementById("responseBox");
+        box.classList.remove("d-none", "alert-success", "alert-danger");
+
+        if (res.success) {
+          box.classList.add("alert-success");
+          box.innerHTML = res.message;
+          console.log("MFA successful:", res.username);
+          const u = res.username || username;
+          window.location.replace("/home.php");
+          
+        } else {
+          box.classList.add("alert-danger");
+          box.innerHTML = res.message;
+          console.log("MFA failed:", res.message);
+          document.getElementById("mfaCode").value = '';
+          document.getElementById("mfaCode").focus();
         }
       } catch (err) {
         alert("Invalid server response: " + this.responseText);
@@ -164,7 +247,21 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
     }
   };
 
-  xhr.send("uname=" + encodeURIComponent(username) + "&pword=" + encodeURIComponent(password));
+  xhr.send("uname=" + encodeURIComponent(currentUname) + "&code=" + encodeURIComponent(code));
+});
+
+//Link to go Back to Login
+document.getElementById("backToLogin").addEventListener("click", function() {
+  document.getElementById("mfaSection").classList.add("d-none");
+  document.getElementById("loginSection").classList.remove("d-none");
+  document.getElementById("responseBox").classList.add("d-none");
+  document.getElementById("mfaCode").value = '';
+  document.getElementById("password").value = '';
+});
+
+//make it digits only
+document.getElementById("mfaCode").addEventListener("input", function(e) {
+  this.value = this.value.replace(/[^0-9]/g, '');
 });
 </script>
 

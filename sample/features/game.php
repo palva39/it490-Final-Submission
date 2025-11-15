@@ -10,9 +10,9 @@ header('Content-Type: application/json');
 
 try {
   // match the paths you used in home.php
-  require_once('/home/vboxuser/git/rabbitmqphp/path.inc');
-  require_once('/home/vboxuser/git/rabbitmqphp/get_host_info.inc');
-  require_once('/home/vboxuser/git/rabbitmqphp/rabbitMQLib.inc');
+  require_once('/home/craig/git/it490-Final-Submission/path.inc');
+  require_once('/home/craig/git/it490-Final-Submission/get_host_info.inc');
+  require_once('/home/craig/git/it490-Final-Submission/rabbitMQLib.inc');
 
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

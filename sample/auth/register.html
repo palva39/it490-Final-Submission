@@ -108,6 +108,13 @@
         <input id="username" type="text" class="form-control" required />
         <div class="invalid-feedback">Username is required.</div>
       </div>
+      <!-- phone -->
+      <div class="mb-3">
+        <label for="phone" class="form-label">Phone Number</label>
+        <input type="tel" class="form-control" id="phone" required pattern="[0-9]{10}" minlength="10" maxlength="10">
+        <div class="invalid-feedback">Please enter a valid phone number.</div>
+      </div>
+      <!-- End of phone -->
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
         <input id="password" type="password" class="form-control" minlength="4" required />
@@ -142,7 +149,9 @@
       const p = document.getElementById('password').value;
       const c = document.getElementById('confirm').value;
 
-      if (!u || p.length < 4 || p !== c) return;
+      const phone = document.getElementById('phone').value;
+
+      if (!u || p.length < 4 || p !== c || !phone) return;
 
       btn.disabled = true;
 
@@ -174,7 +183,7 @@
           }
         }
       };
-      xhr.send('uname=' + encodeURIComponent(u) + '&pword=' + encodeURIComponent(p));
+      xhr.send('uname=' + encodeURIComponent(u) + '&pword=' + encodeURIComponent(p) + '&phone=' + encodeURIComponent(phone)); 
     });
   </script>
 </body>
