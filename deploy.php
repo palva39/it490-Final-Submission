@@ -27,7 +27,10 @@ function pdo(): PDO {
 }
 
 function ok($data = []) { return ['ok' => true] + $data; }
-function fail($msg, $extra = []) { return ['ok' => false, 'error' => $msg] + $extra; }
+function fail($msg, $extra = []) {
+  logit('FAIL: ' . $msg);
+  return ['ok' => false, 'error' => $msg] + $extra;
+}
 function logit(string $msg): void { error_log('[deploy-listener] '.$msg); }
 
 function requestProcessor(array $req) {
