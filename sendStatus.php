@@ -20,5 +20,19 @@ if (!in_array($status, ['pass', 'fail'], true)) {
     exit(1);
 }
 
+try {
+    $client = new rabbitMQClient('testRabbitMQ.ini', 'deployServer');
+
+    $msg = [
+        'type'   => 'update_status',
+        'name'   => $bundleName,
+        'status' => $status,
+    ];
+    $client->publish($msg);
+    echo "Sent status '{$status}' for bundle '{$bundleName}' to deployServer.\n";
+} catch (Throwable $e) {
+    echo "Error sending status message: {$e->getMessage()}\n";
+    exit(1);
+}
 
 ?>
