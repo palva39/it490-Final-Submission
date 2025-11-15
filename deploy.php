@@ -37,15 +37,15 @@ function requestProcessor(array $req) {
 
     switch ($type) {
       case 'next_version': {
-        $name = trim((string)($req['name'] ?? ''));
-        if ($name === '') return fail('missing name');
+        $bundleName = trim((string)($req['name'] ?? ''));
+        if ($bundleName === '') return fail('missing name');
         $stmt = pdo()->prepare("SELECT COALESCE(MAX(version),0)+1 AS v FROM bundles WHERE name = ?");
-        $stmt->execute([$name]);
+        $stmt->execute([$bundleName]);
         $v = (int)($stmt->fetch()['v'] ?? 1);
         return ok(['version' => $v]);
       }
        case 'register_bundle': {
-        $name = trim((string)($req['name'] ?? ''));
+        $bundleName = trim((string)($req['name'] ?? ''));
         $version = (int)($req['version'] ?? 0);
         $status = (string)($req['status'] ?? 'new');
         $filepath = trim((string)($req['filepath'] ?? ''));
@@ -54,12 +54,12 @@ function requestProcessor(array $req) {
         $__file = basename($filepath);
         $filepath = rtrim($__base, '/').($__file !== '' ? '/'.$__file : '');
 
-        if ($name === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
+        if ($bundleName === '' || $version <= 0 || $filepath === '') return fail('missing name or version');
 
         $sql = "INSERT INTO bundles (name, version, status, filepath) VALUES (?,?,?,?)";
         try {
           $stmt = pdo()->prepare($sql);
-          $stmt->execute([$name, $version, $status, $filepath]);
+          $stmt->execute([$bundleName, $version, $status, $filepath]);
         } catch (PDOException $e) {
           if (strpos($e->getMessage(), 'Duplicate') !== false) {
             return fail('duplicate name+version');
@@ -69,16 +69,24 @@ function requestProcessor(array $req) {
         return ok(['id' => (int)pdo()->lastInsertId()]);
       }
       case 'set_status': {
-        $name = trim((string)($req['name'] ?? ''));
-        $version = (int)($req['version'] ?? 0);
+        $bundleName = trim((string)($req['name'] ?? ''));
         $status = (string)($req['status'] ?? '');
-        if ($name === '' || $version <= 0 || !in_array($status, ['new','passed','failed'], true)) {
-          return fail('invalid args');
+
+        if ($bundleName === '' || !in_array($status, ['new','pass','fail'], true)) {
+            return fail('invalid args');
         }
-        $stmt = pdo()->prepare("UPDATE bundles SET status = ? WHERE name = ? AND version = ?");
-        $stmt->execute([$status, $name, $version]);
-        if ($stmt->rowCount() === 0) return fail('not found');
-        return ok();
+
+        $stmt = pdo()->prepare("SELECT version FROM bundles WHERE name = ? ORDER BY version DESC LIMIT 1");
+        $stmt->execute([$bundleName]);
+        $row = $stmt->fetch();
+        if (!$row) return fail('bundle not found');
+
+        $version = (int)$row['version'];
+
+        $upd = pdo()->prepare("UPDATE bundles SET status = ? WHERE name = ? AND version = ?");
+        $upd->execute([$status, $bundleName, $version]);
+
+    return ok(['version' => $version]);
       }
 
       default:
