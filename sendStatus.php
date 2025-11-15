@@ -12,5 +12,13 @@ if ($argc < 2) {
     exit(1);
 }
 
+$bundleName = $argv[1];
+
+$status = strtolower(trim(readline("Enter status for '{$bundleName}' (pass/fail): ")));
+if (!in_array($status, ['pass', 'fail'], true)) {
+    echo "Error: status must be 'pass' or 'fail'.\n";
+    exit(1);
+}
+
 
 ?>
