@@ -1,0 +1,13 @@
+[Unit]
+Description=Hot Stand By Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/craig/git/it490-Final-Submission/hotStandByBackUp.sh 
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target
