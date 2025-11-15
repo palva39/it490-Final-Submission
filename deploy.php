@@ -71,7 +71,7 @@ function requestProcessor(array $req) {
         }
         return ok(['id' => (int)pdo()->lastInsertId()]);
       }
-      case 'set_status': {
+      case 'update_status': {
         $bundleName = trim((string)($req['name'] ?? ''));
         $status = (string)($req['status'] ?? '');
 
