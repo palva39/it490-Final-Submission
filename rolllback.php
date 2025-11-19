@@ -6,29 +6,11 @@ require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 
-
-/*Manual Deployment script
-
-How to use:
-php deployment.php <version#> <queue> <bundlename>  
-**Check database for exact bundlename and version # that you want to send to installer**
-
-Example:
-
-php deployment.php 1 QA_BackEnd fixingBackEnd
-php deployment.php 2 QA_Webserver loginCSSChange
-
-*/
-
-/*--------------DB info------------*/
 const DB_HOST = '127.0.0.1';
 const DB_NAME = 'bundles';
 const DB_USER = 'deploy';
 const DB_PASS = 'deploy123'; 
 
-
-//fix so user doesnt enter version number instead only bundle name and database gets the latest version number, only args should queue and bundlename
-//add checker for PROD, should get the latest version number and status is pass
 if ($argc < 3) {
     echo "Usage: php {$argv[0]} <queue> <bundleName>\n";
     exit(1);
