@@ -81,14 +81,14 @@ function requestProcessor(array $req) {
           //quename is $location and bundle name is $bundleName
           //this section will send the install back to the queue that sent the status fail so it can rollback to previous last passed bundle 
 
-            logit("update_status: FAIL for {$bundleName} v{$version}, invoking rollback.php for queue {$location}");
+            logit("update_status: FAIL for {$bundleName} invoking rollback.php for queue {$location}");
             $cmd = escapeshellcmd("php /home/vboxuser/git/it490-Final-Submission/rollback.php {$location} {$bundleName}");
 
            
             $output = [];
             $returnCode = 0;
             exec($cmd . " 2>&1", $output, $returnCode);
-            
+
             logit("rollback.php output: " . implode(" | ", $output));
 
             if ($returnCode !== 0) {
