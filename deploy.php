@@ -73,7 +73,15 @@ function requestProcessor(array $req) {
       }
       case 'update_status': {
         $bundleName = trim((string)($req['name'] ?? ''));
+        $location = trim((string)($req['location'] ?? ''));
         $status = (string)($req['status'] ?? '');
+        
+        if ($status === 'fail'){
+          //wrong php script called sendInstall.php with args queunanme and bundle name
+          //quename is $location and bundle name is $bundleName
+          //this section will send the install back to the queue that sent the status fail so it can rollback to previous last passed bundle 
+        }
+
 
         if ($bundleName === '' || !in_array($status, ['new','pass','fail'], true)) {
             return fail('invalid args');
