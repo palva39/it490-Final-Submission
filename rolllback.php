@@ -26,6 +26,9 @@ const DB_NAME = 'bundles';
 const DB_USER = 'deploy';
 const DB_PASS = 'deploy123'; 
 
+
+//fix so user doesnt enter version number instead only bundle name and database gets the latest version number, only args should queue and bundlename
+//add checker for PROD, should get the latest version number and status is pass
 if ($argc < 3) {
     echo "Usage: php {$argv[0]} <queue> <bundleName>\n";
     exit(1);
@@ -47,16 +50,14 @@ function pdo(): PDO {
     return $pdo = new PDO($dsn, DB_USER, DB_PASS, $opt);
 }
 
-$row          = null;
-$actualStatus = null;
-
-// QA: try 'new' first, then 'pass'
-// PROD: only 'pass'
+$status= null;
 if (stripos($queue, 'QA') === 0) {
+    $status = 'pass';
+} elseif (stripos($queue, 'PROD') === 0) {
+    $status= 'pass';
+}
 
-    $candidates = ['new', 'pass'];
-
-    foreach ($candidates as $candidate) {
+if ($status !== null) {
         $stmt = pdo()->prepare("
             SELECT version, filepath 
             FROM bundles 
@@ -64,35 +65,13 @@ if (stripos($queue, 'QA') === 0) {
             ORDER BY version DESC 
             LIMIT 1
         ");
-        $stmt->execute([$bundleName, $candidate]);
-        $row = $stmt->fetch();
-
-        if ($row) {
-            $actualStatus = $candidate;
-            break;
-        }
-    }
-
-} elseif (stripos($queue, 'PROD') === 0) {
-
-    $actualStatus = 'pass';
-    $stmt = pdo()->prepare("
-        SELECT version, filepath 
-        FROM bundles 
-        WHERE name = ? AND status = ? 
-        ORDER BY version DESC 
-        LIMIT 1
-    ");
-    $stmt->execute([$bundleName, $actualStatus]);
-    $row = $stmt->fetch();
+        $stmt->execute([$bundleName, $status]);
 }
 
+$row = $stmt -> fetch();
+
 if (!$row) {
-    if (stripos($queue, 'QA') === 0) {
-        echo "Error: No record found for bundle '{$bundleName}' with status 'new' or 'pass'. QA will remain unchanged.\n";
-    } else {
-        echo "Error: No record found for bundle '{$bundleName}' with status 'pass'.\n";
-    }
+    echo "Error: No record found for bundle '{$bundleName}' with status '{$status}'.\n";
     exit(1);
 }
 
