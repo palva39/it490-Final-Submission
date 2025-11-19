@@ -77,9 +77,25 @@ function requestProcessor(array $req) {
         $status = (string)($req['status'] ?? '');
         
         if ($status === 'fail'){
-          //wrong php script called sendInstall.php with args queunanme and bundle name
+          //run php script called sendInstall.php with args queunanme and bundle name
           //quename is $location and bundle name is $bundleName
           //this section will send the install back to the queue that sent the status fail so it can rollback to previous last passed bundle 
+
+            logit("update_status: FAIL for {$bundleName} v{$version}, invoking rollback.php for queue {$location}");
+            $cmd = escapeshellcmd("php /home/vboxuser/git/it490-Final-Submission/rollback.php {$location} {$bundleName}");
+
+           
+            $output = [];
+            $returnCode = 0;
+            exec($cmd . " 2>&1", $output, $returnCode);
+            
+            logit("rollback.php output: " . implode(" | ", $output));
+
+            if ($returnCode !== 0) {
+                logit("rollback.php FAILED with exit code {$returnCode}");
+            } else {
+                logit("rollback.php executed successfully");
+            }
         }
 
 
