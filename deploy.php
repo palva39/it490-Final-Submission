@@ -32,7 +32,15 @@ function fail($msg, $extra = []) {
   logit('FAIL: ' . $msg);
   return ['ok' => false, 'error' => $msg] + $extra;
 }
-function logit(string $msg): void { error_log('[deploy-listener] '.$msg); }
+
+//logging errors inline of terminal
+function logit(string $msg): void {
+    $line = '[deploy-listener] ' . $msg;
+    error_log($line);       
+    echo $line . PHP_EOL;    
+    flush();
+}
+
 
 function requestProcessor(array $req) {
   try{
