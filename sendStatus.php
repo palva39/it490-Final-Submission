@@ -7,14 +7,40 @@ require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 
-if ($argc < 3) {
-    echo "Usage: php {$argv[0]} <bundleName>\n";
-    echo "Usage: php {$argv[1]} <QueueName>\n"; // QA_Backend or QA_Webserver or PROD_
+
+echo "-------List of QA Queues-------------\n";
+echo "1. QA_Webserver\n";
+echo "2. QA_Backend\n";
+echo "3. QA_DMZ\n\n";
+
+echo "-------List of PROD Queues-------------\n";
+echo "1. PROD_Webserver\n";
+echo "2. PROD_Backend\n";
+echo "3. PROD_DMZ\n";
+
+$location = trim(readline("Enter current QueueName (from lists above): "));
+if ($location === '') {
+    echo "Error: QueueName cannot be empty.\n";
     exit(1);
 }
 
-$bundleName = $argv[1];
-$location = $arg[2];
+$client = new rabbitMQClient('testRabbitMQ.ini', 'deployServer');
+    $listResp = $client->send_request(['type' => 'list_bundle_names']);
+
+    echo "\n--------Bundles in DB---------\n";
+    if (($listResp['ok'] ?? false) && !empty($listResp['names'])) {
+        foreach ($listResp['names'] as $n) {
+            echo " - $n\n";
+        }
+    } else {
+        echo " (none found)\n";
+    }
+
+$bundleName = trim(readline("Enter bundle name you're working on: "));
+if ($bundleName === '') {
+    echo "Error: bundle name cannot be empty.\n";
+    exit(1);
+}
 
 $status = strtolower(trim(readline("Enter status for '{$bundleName}' (pass/fail): ")));
 if (!in_array($status, ['pass', 'fail'], true)) {
