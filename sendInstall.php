@@ -29,14 +29,39 @@ const DB_PASS = 'deploy123';
 
 //fix so user doesnt enter version number instead only bundle name and database gets the latest version number, only args should queue and bundlename
 //add checker for PROD, should get the latest version number and status is pass
-if ($argc < 3) {
-    echo "Usage: php {$argv[0]} <queue> <bundleName>\n";
+echo "-------List of QA Queues-------------\n";
+echo "1. QA_Webserver\n";
+echo "2. QA_Backend\n";
+echo "3. QA_DMZ\n\n";
+
+echo "-------List of PROD Queues-------------\n";
+echo "1. PROD_Webserver\n";
+echo "2. PROD_Backend\n";
+echo "3. PROD_DMZ\n";
+
+$queue = trim(readline("Enter QueueName your sending too(from lists above): "));
+if ($queue === '') {
+    echo "Error: QueueName cannot be empty.\n";
     exit(1);
 }
 
-$queue   = $argv[1];
-$bundleName = $argv[2];
+$client = new rabbitMQClient('testRabbitMQ.ini', 'deployServer');
+    $listResp = $client->send_request(['type' => 'list_bundle_names']);
 
+    echo "\n--------Bundles in DB---------\n";
+    if (($listResp['ok'] ?? false) && !empty($listResp['names'])) {
+        foreach ($listResp['names'] as $n) {
+            echo " - $n\n";
+        }
+    } else {
+        echo " (none found)\n";
+    }
+
+$bundleName = trim(readline("Enter bundle name you're working on: "));
+if ($bundleName === '') {
+    echo "Error: bundle name cannot be empty.\n";
+    exit(1);
+}
 
 function pdo(): PDO {
     static $pdo = null;
