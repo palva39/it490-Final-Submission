@@ -27,6 +27,7 @@ function pdo(): PDO {
 }
 
 function ok($data = []) { return ['ok' => true] + $data; }
+
 function fail($msg, $extra = []) {
   logit('FAIL: ' . $msg);
   return ['ok' => false, 'error' => $msg] + $extra;
@@ -47,6 +48,8 @@ function requestProcessor(array $req) {
         $v = (int)($stmt->fetch()['v'] ?? 1);
         return ok(['version' => $v]);
       }
+
+
        case 'register_bundle': {
         $bundleName = trim((string)($req['name'] ?? ''));
         $version = (int)($req['version'] ?? 0);
@@ -71,6 +74,17 @@ function requestProcessor(array $req) {
         }
         return ok(['id' => (int)pdo()->lastInsertId()]);
       }
+
+      //this listes the bundlenames when bundle.php is called so the user can see whats already in the database
+      case 'list_bundle_names':
+        try {
+            $stmt = pdo()->query("SELECT DISTINCT name FROM bundles ORDER BY name ASC");
+            $names = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            return ['ok' => true, 'names' => $names];
+        } catch (Throwable $e) {
+            return ['ok' => false, 'msg' => $e->getMessage()];
+        }
+
       case 'update_status': {
         $bundleName = trim((string)($req['name'] ?? ''));
         $location = trim((string)($req['location'] ?? ''));
