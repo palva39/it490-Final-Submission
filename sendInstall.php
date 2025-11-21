@@ -57,7 +57,7 @@ $client = new rabbitMQClient('testRabbitMQ.ini', 'deployServer');
         echo " (none found)\n";
     }
 
-$bundleName = trim(readline("Enter bundle name you're working on: "));
+$bundleName = trim(readline("Enter bundle name you're sending: "));
 if ($bundleName === '') {
     echo "Error: bundle name cannot be empty.\n";
     exit(1);
