@@ -3,7 +3,7 @@
 # Change IP depending on what server will be getting pinged
 
 otherIP="100.71.80.77"  
-pingIntervalInSeconds=15             
+pingIntervalInSeconds=10             
 pingFailInSeconds=5                
 pingAttempts=3     
 isBackup=true     

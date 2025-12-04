@@ -1,0 +1,11 @@
+[Unit]
+Description=Real-Time Error Log Tail to RabbitMQ
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c "tail -F /var/log/apache2/error.log /var/log/test/error.log | /usr/bin/php /var/bash/decentral_log_send.php"
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
