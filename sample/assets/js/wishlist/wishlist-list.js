@@ -23,7 +23,7 @@
     setStatus('Loading your wishlist…', null);
     listEl.innerHTML = '';
     try {
-      const r = await fetch('features/wishlist.php?action=list&_=' + Date.now(), { method: 'GET' });
+      const r = await fetch('/features/wishlist.php?action=list&_=' + Date.now(), { method: 'GET' });
       const raw = await r.text();
       let j = null; try { j = JSON.parse(raw); } catch { j = null; }
       if (!r.ok || !j) { console.error('wishlist list non-JSON/HTTP error:', raw); setStatus('Failed to load wishlist.', 'danger'); return; }
