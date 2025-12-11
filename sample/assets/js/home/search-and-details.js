@@ -476,7 +476,7 @@
               if (busy) return; busy = true;
               likeBtn.classList.toggle('btn-outline-light'); likeBtn.classList.toggle('btn-light');
               try {
-                await postToggle('features/likes.php');
+                await postToggle('/features/likes.php');
                 if (document.getElementById('liked-content').classList.contains('active-section') && typeof window.loadLikes === 'function') {
                   window.loadLikes();
                 }
@@ -494,7 +494,7 @@
               if (busy) return; busy = true;
               wishBtn.classList.toggle('btn-outline-light'); wishBtn.classList.toggle('btn-light');
               try {
-                await postToggle('features/wishlist.php');
+                await postToggle('/features/wishlist.php');
                 if (document.getElementById('wishlist-content').classList.contains('active-section') && typeof window.loadWishlist === 'function') {
                   window.loadWishlist();
                 }
@@ -512,7 +512,7 @@
               if (busy) return; busy = true;
               playedBtn.classList.toggle('btn-outline-light'); playedBtn.classList.toggle('btn-light');
               try {
-                await postToggle('features/played.php');
+                await postToggle('/features/played.php');
                 if (document.getElementById('played-content').classList.contains('active-section') && typeof window.loadPlayed === 'function') {
                   window.loadPlayed();
                 }
@@ -611,7 +611,7 @@
               const payload = new URLSearchParams();
               payload.append('rawg_id', String(rawgId));
               payload.append('value', String(value));
-              const r = await fetch('rating.php?_=' + Date.now(), {
+              const r = await fetch('/features/rating.php?_=' + Date.now(), {
                 method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: payload.toString()
               });
               const raw = await r.text();

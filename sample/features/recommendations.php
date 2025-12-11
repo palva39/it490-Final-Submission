@@ -6,9 +6,9 @@ ini_set('display_errors', 0);
 
 header('Content-Type: application/json');
 
-require_once('/home/craig/git/it490-Final-Submission/path.inc');
-require_once('/home/craig/git/it490-Final-Submission/get_host_info.inc');
-require_once('/home/craig/git/it490-Final-Submission/rabbitMQLib.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/path.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/get_host_info.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/rabbitMQLib.inc');
 
 $sid = $_COOKIE['sid'] ?? '';
 if ($sid === '') {

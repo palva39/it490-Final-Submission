@@ -9,9 +9,9 @@ ob_start();
 header('Content-Type: application/json');
 
 try {
-    require_once('/home/craig/git/it490-Final-Submission/path.inc');
-    require_once('/home/craig/git/it490-Final-Submission/get_host_info.inc');
-    require_once('/home/craig/git/it490-Final-Submission/rabbitMQLib.inc');
+    require_once('/home/batul-anous/git/rabbitmqphp/path.inc');
+    require_once('/home/batul-anous/git/rabbitmqphp/get_host_info.inc');
+    require_once('/home/batul-anous/git/rabbitmqphp/rabbitMQLib.inc');
 
     $uname = isset($_POST['uname']) ? trim($_POST['uname']) : '';
     $pword = isset($_POST['pword']) ? (string)$_POST['pword'] : '';

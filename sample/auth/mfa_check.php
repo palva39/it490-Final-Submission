@@ -6,9 +6,9 @@ ini_set('log_errors', 1);
 ini_set('error_log', '/var/log/php/login_php_errors.log');
 error_log("logger alive: " . date('c'));
 
-require_once('/home/craig/git/it490-Final-Submission/path.inc');
-require_once('/home/craig/git/it490-Final-Submission/get_host_info.inc');
-require_once('/home/craig/git/it490-Final-Submission/rabbitMQLib.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/path.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/get_host_info.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/rabbitMQLib.inc');
 
 
 header('Content-Type: application/json');

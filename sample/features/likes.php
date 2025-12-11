@@ -4,9 +4,9 @@ declare(strict_types=1);
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
 ini_set('display_errors', 0);
 
-require_once('/home/craig/git/it490-Final-Submission/path.inc');
-require_once('/home/craig/git/it490-Final-Submission/get_host_info.inc');
-require_once('/home/craig/git/it490-Final-Submission/rabbitMQLib.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/path.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/get_host_info.inc');
+require_once('/home/batul-anous/git/rabbitmqphp/rabbitMQLib.inc');
 
 header('Content-Type: application/json');
 

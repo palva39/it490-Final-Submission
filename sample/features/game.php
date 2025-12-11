@@ -9,10 +9,10 @@ ini_set('error_log', '/var/log/apache2/game_endpoint.log'); // adjust if needed
 header('Content-Type: application/json');
 
 try {
-  // match the paths you used in home.php
-  require_once('/home/craig/git/it490-Final-Submission/path.inc');
-  require_once('/home/craig/git/it490-Final-Submission/get_host_info.inc');
-  require_once('/home/craig/git/it490-Final-Submission/rabbitMQLib.inc');
+  // match the paths used in home.php
+  require_once('/home/batul-anous/git/rabbitmqphp/path.inc');
+  require_once('/home/batul-anous/git/rabbitmqphp/get_host_info.inc');
+  require_once('/home/batul-anous/git/rabbitmqphp/rabbitMQLib.inc');
 
   if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
