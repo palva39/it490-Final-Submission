@@ -4,10 +4,10 @@
 # Change IP depending on what server will be getting pinged
 
 
-mainIP=”100.89.10.38”
-backupIP="100.65.198.89" 
-currentIP="$mainIP"
-iniFile=”/var/bash/testRabbitMQ.ini”
+mainIP="100.89.10.38"
+iniMain=/var/hsb/main/testRabbitMQ.ini
+iniBackUp=/var/hsb/backup/testRabbitMQ.ini
+iniCurrent="$iniMain"
 pingIntervalInSeconds=15            
 pingFailInSeconds=5               
 pingAttempts=3    
@@ -15,21 +15,22 @@ isMainOn=true
 
 
 pingServer() {
-   if (ping -c "$pingAttempts" -W "$pingFailInSeconds" "$mainIP" > /dev/null 2>&1); then
-       isMainOn=true
-   else
-       isMainOn=false 
-   fi
+    if ping -c "$pingAttempts" -W "$pingFailInSeconds" "$mainIP" > /dev/null 2>&1; then
+        isMainOn=true
+        echo "Ping successful"
+    else
+        isMainOn=false 
+        echo "Ping failed"
+    fi
 }
 
 
 changeIP() {
-   echo "Restarting Apache"
-   newIP=$1
-   sed -e "s/'$currentIP'/'$newIP'" -i "$iniFile"
-   #sed "s/"$currentIP"/"$newIP"/" "$iniFile"
-   currentIP="$newIP"
-   systemctl restart apache2
+    iniNew=$1
+    cp "$iniNew" /home/craig/git/it490-Final-Submission/testRabbitMQ.ini
+    iniCurrent="$iniNew"
+    systemctl restart apache2
+    echo "Switch to: $iniCurrent"
 }
 
 
@@ -37,23 +38,20 @@ changeIP() {
 
 
 while true; do
-   pingServer
-
-
-   if [ "$isMainOn" = true ]; then
-        if [ "$currentIP" = "$backupIP" ]; then
-            changeIP "$mainIP"
-        fi
-   elif [ "$isMainOn" = false ]; then
-        if [ "$currentIP" = "$mainIP" ]; then
-            changeIP "$backupIP"
-        fi
-   fi
-  
-   # Interval between pings to check server status
-   sleep "$pingIntervalInSeconds"
-
-
+    pingServer
+    
+    if [ "$isMainOn" = true ] && [ "$iniCurrent" = "$iniBackUp" ]; then
+        echo "Main is back up -> switch"
+        changeIP "$iniMain"
+    elif [ "$isMainOn" = false ] && [ "$iniCurrent" = "$iniMain" ]; then
+        echo "Main is down -> switch"
+        changeIP "$iniBackUp"
+    else
+        echo "Do nothing"
+    fi
+    
+    # Interval between pings to check server status
+    sleep "$pingIntervalInSeconds"
 done
 
 
