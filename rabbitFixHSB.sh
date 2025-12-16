@@ -29,7 +29,7 @@ changeIP() {
     iniNew=$1
     cp "$iniNew" /home/craig/git/it490-Final-Submission/testRabbitMQ.ini
     iniCurrent="$iniNew"
-    systemctl restart apache2
+    systemctl restart dmz.service
     echo "Switch to: $iniCurrent"
 }
 

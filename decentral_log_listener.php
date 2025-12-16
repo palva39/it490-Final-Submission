@@ -11,9 +11,6 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 
-$logFile = "/home/craig/git/it490-Final-Submission/allErrors.log"; //change depending on path
-
-
 /* ===== MQ request router ===== */
 
 
@@ -37,7 +34,7 @@ function requestProcessor(array $request) {
 
 
        // Append to log file
-       file_put_contents("/home/craig/git/it490-Final-Submission/allErrors.log", "$line\n", FILE_APPEND);
+       file_put_contents("/var/log/test/allErrors.log", "$line\n", FILE_APPEND);
 
 
        return ['success' => true];
