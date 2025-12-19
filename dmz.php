@@ -9,7 +9,8 @@ require_once('rabbitMQLib.inc');
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
-ini_set('error_log', '/var/log/dmz_fetcher.log');
+ini_set('error_log', '/var/log/test/error.log');
+error_log('dmz test error');
 
 /** Minimal .env loader (RAWG_API_KEY=xxxx) */
 function loadDotEnv(string $file): void {

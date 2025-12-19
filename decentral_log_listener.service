@@ -1,0 +1,14 @@
+[Unit]
+Description=Turn on Log Listener
+After=network-online.target rabbitmq-server.Service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/craig/git/it490-Final-Submission
+ExecStart=/usr/bin/php /home/craig/git/it490-Final-Submission/decentral_log_listener.php
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
